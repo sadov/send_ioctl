@@ -75,22 +75,26 @@ func send_ioctl(fd int, hdr sgIoHdr) error {
 func main() {
 	var hdr sgIoHdr
 
-	fd, err := unix.Open(os.Args[1], unix.O_RDWR, 0600)
-
-	if err != nil {
-		fmt.Println(err)
+	if len(os.Args) == 1 {
+		fmt.Printf("Usage: %s device\n", os.Args[0])
 		os.Exit(1)
 	}
 
-	if hdr, err = prepare_hdr(fd); err != nil {
+	fd, err := unix.Open(os.Args[1], unix.O_RDWR, 0600)
+	defer unix.Close(fd)
+
+	if err != nil {
 		fmt.Println(err)
 		os.Exit(2)
 	}
 
-	if err = send_ioctl(fd, hdr); err != nil {
+	if hdr, err = prepare_hdr(fd); err != nil {
 		fmt.Println(err)
 		os.Exit(3)
 	}
 
-	defer unix.Close(fd)
+	if err = send_ioctl(fd, hdr); err != nil {
+		fmt.Println(err)
+		os.Exit(4)
+	}
 }
